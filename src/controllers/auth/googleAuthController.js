@@ -1,26 +1,34 @@
-import passport from "passport";
-import googleAuth  from 'passport-google-oauth20'
+import asyncHandler from "express-async-handler";
 import User from "../../models/auth/userModel.js";
+import generateToken from "../../config/generateToken/generateToken.js";
 
-const GoogleStrategy = googleAuth.Strategy();
+export const googleLogin = asyncHandler(async (req, res) => {
+    try {
+        if (!req.user._id) {
+            return res.status(404).send({ 
+                success: false,
+                message:'No user Found'
+            })
+        }
+        const token = await generateToken(req.user._id);
+        res.status(200).send({ 
+            success: true,
+            message: 'Now You Are Logged In ',
+            user: {
+                name: req.user.name,
+                username: req.user.username,
+                email: req.user.email,
+                profilePicture: req.user.profilePic
+                
+            },
+            token,
+        })
 
-
-// passport.serializeUser((user, done) => {
-//     done(null, user.id);
-// });
-
-// passport.deserializeUser((id, done) => {
-//     userModel.findById(id).then((user) => {
-//         done(null, user);
-//     });
-// });
-
-
-passport.use({
-     clientID: process.env.GOOGLE_CLIENT_ID,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-        callbackURL: process.env.REDIRECT_URI
-},
-    async (accessToken, refreshToken, profile, done) => {
-    console.log('called')
-});
+    } catch (error) {
+        console.log(error);
+        res.status(500).send({
+            success: false,
+            message: 'Internal Server Error'
+        });
+    }
+})

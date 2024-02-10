@@ -114,7 +114,7 @@ export const loginUser = asyncHandler(async (req, res) => {
             })
         }
 
-        const token = await generateToken(user);
+        const token = await generateToken(user._id);
 
         return res.status(200).send({
             success: true,

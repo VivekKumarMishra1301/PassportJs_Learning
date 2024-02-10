@@ -1,19 +1,25 @@
 import express from 'express';
-import { loginUser, registerUser } from '../../controllers/auth/authController.js';
-const router = express.Router();
 import passport from 'passport';
-import passportSetup from '../../controllers/auth/googleAuthController.js'
+import googleAuth from 'passport-google-oauth20';
+import { loginUser, registerUser } from '../../controllers/auth/authController.js';
+import User from "../../models/auth/userModel.js";
+import { encryptPassword } from '../../utils/passwordManager/passwordHandler.js';
+import { googleLogin } from '../../controllers/auth/googleAuthController.js';
+
+const router = express.Router();
+
+const GoogleStrategy = googleAuth.Strategy;
 
 router.post('/signup', registerUser);
-router.post('/login',loginUser);
+router.post('/login', loginUser);
 
-router.get('/google/signup', passport.authenticate('google', {
-    scope: ['profile']
+router.get('/google', passport.authenticate('google', {
+    scope: ['profile','email'],
+    
 }));
-router.get(process.env.REDIRECT_URI, passport.authenticate('google'), (req, res) => {
-    res.send(req.user);
-    // res.redirect('/profile');
-});
+router.get('/google/redirect/info', passport.authenticate('google', {
+    session: false,
+}), googleLogin);
 
 
 
